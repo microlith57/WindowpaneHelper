@@ -1,10 +1,9 @@
-using System.Linq;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Monocle;
-using Celeste;
 using Celeste.Mod.Entities;
 
 namespace Celeste.Mod.WindowpaneHelper {

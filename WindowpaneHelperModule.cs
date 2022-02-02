@@ -1,8 +1,5 @@
-﻿using System;
-
-namespace Celeste.Mod.WindowpaneHelper {
+﻿namespace Celeste.Mod.WindowpaneHelper {
     public class WindowpaneHelperModule : EverestModule {
-
         public static WindowpaneHelperModule Instance;
 
         public WindowpaneHelperModule() {
@@ -14,6 +11,5 @@ namespace Celeste.Mod.WindowpaneHelper {
 
         public override void Unload() {
         }
-
     }
 }
