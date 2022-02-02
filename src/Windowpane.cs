@@ -76,6 +76,8 @@ namespace Celeste.Mod.WindowpaneHelper {
         public override void Render() {
             base.Render();
 
+            if (Target == null) { return; }
+
             Vector2 camera_pos = SceneAs<Level>().Camera.Position.Floor();
             Rectangle sourceRectangle = new Rectangle(
                 (int)(base.X - camera_pos.X), (int)(base.Y - camera_pos.Y),
@@ -116,12 +118,12 @@ namespace Celeste.Mod.WindowpaneHelper {
         private void RefreshBackdrops() {
             if (Background) {
                 bgRenderer.Backdrops = SceneAs<Level>().Background.Backdrops
-                    .Where((bg) => bg.Tags.Contains(StylegroundTag))
+                    .Where((bg) => string.IsNullOrEmpty(StylegroundTag) || bg.Tags.Contains(StylegroundTag))
                     .ToList<Backdrop>();
             } else { bgRenderer.Backdrops = default(List<Backdrop>); }
             if (Foreground) {
                 fgRenderer.Backdrops = SceneAs<Level>().Background.Backdrops
-                    .Where((bg) => bg.Tags.Contains(StylegroundTag))
+                    .Where((bg) => string.IsNullOrEmpty(StylegroundTag) || bg.Tags.Contains(StylegroundTag))
                     .ToList<Backdrop>();
             } else { fgRenderer.Backdrops = default(List<Backdrop>); }
         }
