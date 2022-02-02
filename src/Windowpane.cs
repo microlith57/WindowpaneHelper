@@ -19,7 +19,7 @@ namespace Celeste.Mod.WindowpaneHelper {
         public bool IsLeader => (Leader == this);
 
         public Color WipeColor;
-        public Color DrawColor;
+        public Color OverlayColor;
         public bool Background;
         public bool Foreground;
 
@@ -33,8 +33,8 @@ namespace Celeste.Mod.WindowpaneHelper {
             Tag = (int)Tags.TransitionUpdate | (int)Tags.FrozenUpdate;
             Depth = data.Int("depth", 11000);
 
-            WipeColor = data.HexColor("wipeColor", Color.Black);
-            DrawColor = data.HexColor("drawColor", Color.White);
+            WipeColor = ParseColor(data.Attr("wipeColor", "000000ff"), Color.Black);
+            OverlayColor = data.HexColor("overlayColor", Color.White);
             Background = data.Bool("background", true);
             Foreground = data.Bool("foreground", false);
             StylegroundTag = data.Attr("stylegroundTag", "");
@@ -83,7 +83,7 @@ namespace Celeste.Mod.WindowpaneHelper {
                 (int)(base.X - camera_pos.X), (int)(base.Y - camera_pos.Y),
                 (int)base.Width, (int)base.Height);
 
-            Draw.SpriteBatch.Draw((RenderTarget2D)Target, Position, sourceRectangle, DrawColor);
+            Draw.SpriteBatch.Draw((RenderTarget2D)Target, Position, sourceRectangle, OverlayColor);
         }
 
         private void BeforeRender() {
@@ -116,12 +116,36 @@ namespace Celeste.Mod.WindowpaneHelper {
         }
 
         private void RefreshBackdrops() {
-            bgRenderer.Backdrops = SceneAs<Level>().Background.Backdrops
-                .Where((bg) => bg.Tags.Contains(StylegroundTag))
-                .ToList<Backdrop>();
-            fgRenderer.Backdrops = SceneAs<Level>().Background.Backdrops
-                .Where((bg) => bg.Tags.Contains(StylegroundTag))
-                .ToList<Backdrop>();
+            if (Background) {
+                bgRenderer.Backdrops = SceneAs<Level>().Background.Backdrops
+                    .Where((bg) => bg.Tags.Contains(StylegroundTag))
+                    .ToList<Backdrop>();
+            } else { bgRenderer.Backdrops = default(List<Backdrop>); }
+            if (Foreground) {
+                fgRenderer.Backdrops = SceneAs<Level>().Background.Backdrops
+                    .Where((bg) => bg.Tags.Contains(StylegroundTag))
+                    .ToList<Backdrop>();
+            } else { fgRenderer.Backdrops = default(List<Backdrop>); }
+        }
+
+        private Color ParseColor(string hex, Color defaultValue) {
+            var chars = hex.TrimStart('#').ToCharArray();
+
+            if (!chars.All((c) => "0123456789ABCDEF".Contains(char.ToUpper(c)))) {
+                return defaultValue;
+            }
+
+            if (chars.Length == 6 || chars.Length == 8) {
+                float a = 1f;
+                if (chars.Length == 8) {
+                    a = (float)(Calc.HexToByte(chars[6]) * 16 + Calc.HexToByte(chars[7])) / 255f;
+                }
+                float r = (float)(Calc.HexToByte(chars[0]) * 16 + Calc.HexToByte(chars[1])) / 255f;
+                float g = (float)(Calc.HexToByte(chars[2]) * 16 + Calc.HexToByte(chars[3])) / 255f;
+                float b = (float)(Calc.HexToByte(chars[4]) * 16 + Calc.HexToByte(chars[5])) / 255f;
+                return new Color(r, g, b) * a;
+            }
+            return defaultValue;
         }
     }
 }

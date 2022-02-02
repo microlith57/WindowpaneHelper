@@ -6,7 +6,7 @@ using ..Ahorn, Maple
   x::Integer, y::Integer,
   width::Integer=8, height::Integer=8,
   depth::Integer=11000,
-  wipeColor::String="000000", drawColor::String="ffffff",
+  wipeColor::String="000000ff", overlayColor::String="ffffff",
   background::Bool=true, foreground::Bool=false,
   stylegroundTag::String=""
 )

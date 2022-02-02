@@ -1,0 +1,9 @@
+entities.WindowpaneHelper/Windowpane.placements.name.windowpane=Windowpane [Windowpane Helper]
+entities.WindowpaneHelper/Windowpane.attributes.description.depth=The depth of the entity (default 11000). Higher depth makes the window display behind other objects.
+entities.WindowpaneHelper/Windowpane.attributes.name.wipeColor=Background Colour
+entities.WindowpaneHelper/Windowpane.attributes.description.wipeColor=The colour behind all the stylegrounds (default "000000ff"). Can be "rrggbb" or "rrggbbaa" format.\nThis should be the same for all grouped windows.
+entities.WindowpaneHelper/Windowpane.attributes.name.overlayColor=Tint
+entities.WindowpaneHelper/Windowpane.attributes.description.overlayColor=The colour to tint this window (default "ffffff"). Must be in "rrggbb" format.
+entities.WindowpaneHelper/Windowpane.attributes.description.background=Whether to display backgrounds. This should be the same for all grouped windows.
+entities.WindowpaneHelper/Windowpane.attributes.description.foreground=Whether to display foregrounds. This should be the same for all grouped windows.
+entities.WindowpaneHelper/Windowpane.attributes.description.stylegroundTag=The group this window should be part of. Only stylegrounds with this tag will be drawn in the window.
