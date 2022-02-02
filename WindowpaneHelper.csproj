@@ -3,9 +3,9 @@
 
   <PropertyGroup>
     <TargetFrameworks>net452</TargetFrameworks>
-    <AssemblyName>$MODNAME$</AssemblyName>
-    <RootNamespace>Celeste.Mod.$MODNAME$</RootNamespace>
-    <LangVersion>7.3</LangVersion>
+    <AssemblyName>WindowpaneHelper</AssemblyName>
+    <RootNamespace>Celeste.Mod.WindowpaneHelper</RootNamespace>
+    <LangVersion>8.0</LangVersion>
     <CelesteGamePath Condition="'$(CELESTEGAMEPATH)' == ''">..\..</CelesteGamePath>
   </PropertyGroup>
 
@@ -16,8 +16,8 @@
   </ItemDefinitionGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonoMod" Version="21.08.19.01" />
-    <PackageReference Include="MonoMod.RuntimeDetour" Version="21.08.19.01" />
+    <PackageReference Include="MonoMod" Version="22.01.04.03" />
+    <PackageReference Include="MonoMod.RuntimeDetour" Version="22.01.04.03" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,5 +41,11 @@
       </ItemGroup>
     </Otherwise>
   </Choose>
-  
+
+  <PropertyGroup>
+    <OutputPath>.</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+
 </Project>
