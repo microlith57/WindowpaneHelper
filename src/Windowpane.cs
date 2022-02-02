@@ -30,7 +30,6 @@ namespace Celeste.Mod.WindowpaneHelper {
 
         public Windowpane(EntityData data, Vector2 offset) : base(data.Position + offset) {
             Collider = new Hitbox(data.Width, data.Height);
-            Tag = (int)Tags.TransitionUpdate | (int)Tags.FrozenUpdate;
             Depth = data.Int("depth", 11000);
 
             WipeColor = ParseColor(data.Attr("wipeColor", "000000ff"), Color.Black);
