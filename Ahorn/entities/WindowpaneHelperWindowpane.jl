@@ -23,6 +23,8 @@ const windowBorderColor = (0.4, 0.4, 0.4, 1.0)
 Ahorn.minimumSize(entity::Windowpane) = 1, 1
 Ahorn.resizable(entity::Windowpane) = true, true
 
+Ahorn.selection(entity::Windowpane) = Ahorn.getEntityRectangle(entity)
+
 function renderWindow(ctx::Ahorn.Cairo.CairoContext, x::Number, y::Number, width::Number, height::Number)
     Ahorn.Cairo.save(ctx)
 
