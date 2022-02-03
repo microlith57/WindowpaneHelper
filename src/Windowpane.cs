@@ -58,16 +58,15 @@ namespace Celeste.Mod.WindowpaneHelper {
 
         public override void Removed(Scene scene) {
             if (IsLeader) {
-                Windowpane next = (scene as Level).Tracker.GetEntities<Windowpane>()
-                                                          .Select(e => (e as Windowpane))
-                                                          .Where(e => (e != null && e != this))
-                                                          .First();
+                var next = (scene as Level).Tracker.GetEntities<Windowpane>()
+                                                   .Select(e => (e as Windowpane))
+                                                   .Where(e => (e != null && e != this));
 
-                if (next == null) {
+                if (next.Any()) {
+                    next.First().JoinGroup(forceLeader: true);
+                } else {
                     Target.Dispose();
                     GroupLeaderInfo.Remove(StylegroundTag);
-                } else {
-                    next.JoinGroup(forceLeader: true);
                 }
             }
             base.Removed(scene);
