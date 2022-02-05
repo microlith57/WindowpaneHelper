@@ -20,6 +20,7 @@ namespace Celeste.Mod.WindowpaneHelper {
 
         public Color WipeColor;
         public Color OverlayColor;
+        public BlendState BlendState;
 
         public readonly string StylegroundTag;
 
@@ -30,8 +31,22 @@ namespace Celeste.Mod.WindowpaneHelper {
             Depth = data.Int("depth", 11000);
 
             WipeColor = ParseColor(data.Attr("wipeColor", "000000ff"), Color.Black);
-            OverlayColor = data.HexColor("overlayColor", Color.White);
+            OverlayColor = ParseColor(data.Attr("overlayColor", "ffffffff"), Color.White);
             StylegroundTag = data.Attr("stylegroundTag", "");
+
+            string blendState = data.Attr("blendState", "alphablend").ToLower();
+            switch (blendState) {
+                case "additive":
+                    BlendState = BlendState.Additive; break;
+                case "alphablend":
+                    BlendState = BlendState.AlphaBlend; break;
+                case "nonpremultiplied":
+                    BlendState = BlendState.NonPremultiplied; break;
+                case "opaque":
+                    BlendState = BlendState.Opaque; break;
+                default:
+                    BlendState = BlendState.AlphaBlend; break;
+            }
 
             Background ??= new ForcefulBackdropRenderer();
             Foreground ??= new ForcefulBackdropRenderer();
@@ -96,8 +111,20 @@ namespace Celeste.Mod.WindowpaneHelper {
                 (int)(source_pos.X), (int)(source_pos.Y),
                 (int)base.Width, (int)base.Height);
 
+            // change to preferred blend state
+            if (BlendState != BlendState.AlphaBlend) {
+                Draw.SpriteBatch.End();
+                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, (Scene as Level).GameplayRenderer.Camera.Matrix);
+            }
+
             Draw.Rect(Position, Width, Height, WipeColor);
             Draw.SpriteBatch.Draw((RenderTarget2D)Target, Position, sourceRectangle, OverlayColor);
+
+            // restore default spritebatch settings
+            if (BlendState != BlendState.AlphaBlend) {
+                Draw.SpriteBatch.End();
+                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, (Scene as Level).GameplayRenderer.Camera.Matrix);
+            }
         }
 
         private void BeforeRender() {

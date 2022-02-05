@@ -12,9 +12,16 @@ windowpane.placements = {
     height = 8,
     depth = 11000,
     wipeColor = "000000ff",
-    overlayColor = "ffffff",
+    overlayColor = "ffffffff",
+    blendState = "alphablend",
     stylegroundTag = ""
   }
 }
+-- windowpane.fieldInformation = {
+--   blendState = {
+--     options = {"additive", "alphablend", "nonpremultiplied", "opaque"},
+--     fieldType = "string"
+--   }
+-- }
 
 return windowpane
