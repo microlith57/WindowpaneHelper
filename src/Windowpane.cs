@@ -23,6 +23,8 @@ namespace Celeste.Mod.WindowpaneHelper {
 
         public readonly string StylegroundTag;
 
+        public Vector2? Node;
+
         public Windowpane(EntityData data, Vector2 offset) : base(data.Position + offset) {
             Collider = new Hitbox(data.Width, data.Height);
             Depth = data.Int("depth", 11000);
@@ -34,6 +36,8 @@ namespace Celeste.Mod.WindowpaneHelper {
             Background ??= new ForcefulBackdropRenderer();
             Foreground ??= new ForcefulBackdropRenderer();
             GroupLeaderInfo ??= new Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>>();
+
+            Node = data.FirstNodeNullable(offset);
         }
 
         public override void Added(Scene scene) {
@@ -87,8 +91,9 @@ namespace Celeste.Mod.WindowpaneHelper {
             if (Target == null) { return; }
 
             Vector2 camera_pos = SceneAs<Level>().Camera.Position.Floor();
+            Vector2 source_pos = (Node.HasValue ? Node.Value : Position) - camera_pos;
             Rectangle sourceRectangle = new Rectangle(
-                (int)(base.X - camera_pos.X), (int)(base.Y - camera_pos.Y),
+                (int)(source_pos.X), (int)(source_pos.Y),
                 (int)base.Width, (int)base.Height);
 
             Draw.Rect(Position, Width, Height, WipeColor);

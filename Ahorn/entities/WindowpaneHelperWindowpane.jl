@@ -19,10 +19,26 @@ const placements = Ahorn.PlacementDict(
 const windowFillColor = (0.6, 0.6, 0.6, 0.4)
 const windowBorderColor = (0.4, 0.4, 0.4, 1.0)
 
+Ahorn.nodeLimits(entity::Windowpane) = 0, 1
+
 Ahorn.minimumSize(entity::Windowpane) = 1, 1
 Ahorn.resizable(entity::Windowpane) = true, true
 
-Ahorn.selection(entity::Windowpane) = Ahorn.getEntityRectangle(entity)
+function Ahorn.selection(entity::Windowpane)
+  x, y = Ahorn.position(entity)
+
+  width = Int(get(entity.data, "width", 8))
+  height = Int(get(entity.data, "height", 8))
+
+  nodes = get(entity.data, "nodes", ())
+  if isempty(nodes)
+      return Ahorn.Rectangle(x, y, width, height)
+
+  else
+      nx, ny = Int.(nodes[1])
+      return [Ahorn.Rectangle(x, y, width, height), Ahorn.Rectangle(nx, ny, width, height)]
+  end
+end
 
 function renderWindow(ctx::Ahorn.Cairo.CairoContext, x::Number, y::Number, width::Number, height::Number)
     Ahorn.Cairo.save(ctx)
@@ -43,6 +59,23 @@ function Ahorn.render(ctx::Ahorn.Cairo.CairoContext, entity::Windowpane, room::M
     height = Int(get(entity.data, "height", 8))
 
     renderWindow(ctx, 0, 0, width, height)
+end
+
+function Ahorn.renderSelectedAbs(ctx::Ahorn.Cairo.CairoContext, entity::Windowpane)
+  x, y = Ahorn.position(entity)
+  nodes = get(entity.data, "nodes", ())
+
+  width = Int(get(entity.data, "width", 8))
+  height = Int(get(entity.data, "height", 8))
+
+  if !isempty(nodes)
+      nx, ny = Int.(nodes[1])
+
+      cox, coy = floor(Int, width / 2), floor(Int, height / 2)
+
+      renderWindow(ctx, nx, ny, width, height)
+      Ahorn.drawArrow(ctx, x + cox, y + coy, nx + cox, ny + coy, Ahorn.colors.selection_selected_fc, headLength=6)
+  end
 end
 
 end
