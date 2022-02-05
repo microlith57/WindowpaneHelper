@@ -11,6 +11,8 @@ namespace Celeste.Mod.WindowpaneHelper {
     [CustomEntity("WindowpaneHelper/Windowpane")]
     public class Windowpane : Entity {
         public static Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>> GroupLeaderInfo;
+        public static ForcefulBackdropRenderer Background;
+        public static ForcefulBackdropRenderer Foreground;
 
         public VirtualRenderTarget Target => (GroupLeaderInfo?[StylegroundTag]?.Item1);
         public Windowpane Leader => (GroupLeaderInfo?[StylegroundTag]?.Item2);
@@ -18,13 +20,8 @@ namespace Celeste.Mod.WindowpaneHelper {
 
         public Color WipeColor;
         public Color OverlayColor;
-        public bool Background;
-        public bool Foreground;
 
         public readonly string StylegroundTag;
-
-        private BackdropRenderer bgRenderer;
-        private BackdropRenderer fgRenderer;
 
         public Windowpane(EntityData data, Vector2 offset) : base(data.Position + offset) {
             Collider = new Hitbox(data.Width, data.Height);
@@ -32,20 +29,22 @@ namespace Celeste.Mod.WindowpaneHelper {
 
             WipeColor = ParseColor(data.Attr("wipeColor", "000000ff"), Color.Black);
             OverlayColor = data.HexColor("overlayColor", Color.White);
-            Background = data.Bool("background", true);
-            Foreground = data.Bool("foreground", false);
             StylegroundTag = data.Attr("stylegroundTag", "");
 
-            bgRenderer = new BackdropRenderer();
-            bgRenderer.Backdrops = new List<Backdrop>();
-            fgRenderer = new BackdropRenderer();
-            fgRenderer.Backdrops = new List<Backdrop>();
-
+            Background ??= new ForcefulBackdropRenderer();
+            Foreground ??= new ForcefulBackdropRenderer();
             GroupLeaderInfo ??= new Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>>();
         }
 
         public override void Added(Scene scene) {
             base.Added(scene);
+
+            if (Background.Backdrops.Count == 0) {
+                Background.Backdrops = SceneAs<Level>().Background.Backdrops;
+            }
+            if (Foreground.Backdrops.Count == 0) {
+                Foreground.Backdrops = SceneAs<Level>().Foreground.Backdrops;
+            }
 
             Add(new BeforeRenderHook(BeforeRender));
 
@@ -77,6 +76,8 @@ namespace Celeste.Mod.WindowpaneHelper {
                 Target.Dispose();
                 GroupLeaderInfo.Remove(StylegroundTag);
             }
+            Background.Backdrops = new List<Backdrop>();
+            Foreground.Backdrops = new List<Backdrop>();
             base.SceneEnd(scene);
         }
 
@@ -90,20 +91,21 @@ namespace Celeste.Mod.WindowpaneHelper {
                 (int)(base.X - camera_pos.X), (int)(base.Y - camera_pos.Y),
                 (int)base.Width, (int)base.Height);
 
+            Draw.Rect(Position, Width, Height, WipeColor);
             Draw.SpriteBatch.Draw((RenderTarget2D)Target, Position, sourceRectangle, OverlayColor);
         }
 
         private void BeforeRender() {
             if (IsLeader) {
-                bgRenderer.BeforeRender(Scene);
-                fgRenderer.BeforeRender(Scene);
+                Background.BeforeRender(Scene, only: StylegroundTag);
+                Foreground.BeforeRender(Scene, only: StylegroundTag);
 
                 if (Target == null) { JoinGroup(); }
                 Engine.Graphics.GraphicsDevice.SetRenderTarget(Target);
-                Engine.Graphics.GraphicsDevice.Clear(WipeColor);
+                Engine.Graphics.GraphicsDevice.Clear(Color.Transparent);
 
-                bgRenderer.Render(Scene);
-                fgRenderer.Render(Scene);
+                Background.Render(Scene, only: StylegroundTag);
+                Foreground.Render(Scene, only: StylegroundTag);
             }
         }
 
@@ -113,26 +115,12 @@ namespace Celeste.Mod.WindowpaneHelper {
                             VirtualContent.CreateRenderTarget("microlith57-windowpanehelper-" + StylegroundTag, 320, 180),
                             this);
             }
-            RefreshBackdrops();
         }
 
         private void OnTransitionIn() {
             if (Leader.Scene != Scene) {
                 JoinGroup(forceLeader: true);
             }
-        }
-
-        private void RefreshBackdrops() {
-            if (Background) {
-                bgRenderer.Backdrops = SceneAs<Level>().Background.Backdrops
-                    .Where((bg) => string.IsNullOrEmpty(StylegroundTag) || bg.Tags.Contains(StylegroundTag))
-                    .ToList<Backdrop>();
-            } else { bgRenderer.Backdrops = new List<Backdrop>(); }
-            if (Foreground) {
-                fgRenderer.Backdrops = SceneAs<Level>().Foreground.Backdrops
-                    .Where((bg) => string.IsNullOrEmpty(StylegroundTag) || bg.Tags.Contains(StylegroundTag))
-                    .ToList<Backdrop>();
-            } else { fgRenderer.Backdrops = new List<Backdrop>(); }
         }
 
         private Color ParseColor(string hex, Color defaultValue) {
