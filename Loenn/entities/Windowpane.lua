@@ -13,8 +13,6 @@ windowpane.placements = {
     depth = 11000,
     wipeColor = "000000ff",
     overlayColor = "ffffff",
-    background = true,
-    foreground = false,
     stylegroundTag = ""
   }
 }
