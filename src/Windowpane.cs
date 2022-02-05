@@ -45,7 +45,7 @@ namespace Celeste.Mod.WindowpaneHelper {
 
             GroupLeaderInfo ??= new Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>>();
 
-            Node = data.FirstNodeNullable();
+            Node = data.FirstNodeNullable(offset);
         }
 
         public override void Added(Scene scene) {
