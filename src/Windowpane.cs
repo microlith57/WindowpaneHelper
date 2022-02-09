@@ -11,8 +11,8 @@ namespace Celeste.Mod.WindowpaneHelper {
     [CustomEntity("WindowpaneHelper/Windowpane")]
     public class Windowpane : Entity {
         public static Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>> GroupLeaderInfo;
-        public static ForcefulBackdropRenderer Background;
-        public static ForcefulBackdropRenderer Foreground;
+        public ForcefulBackdropRenderer Background;
+        public ForcefulBackdropRenderer Foreground;
 
         public VirtualRenderTarget Target => (GroupLeaderInfo?[StylegroundTag]?.Item1);
         public Windowpane Leader => (GroupLeaderInfo?[StylegroundTag]?.Item2);
@@ -27,6 +27,8 @@ namespace Celeste.Mod.WindowpaneHelper {
         public Vector2? Node;
 
         public Windowpane(EntityData data, Vector2 offset) : base(data.Position + offset) {
+            GroupLeaderInfo ??= new Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>>();
+
             Collider = new Hitbox(data.Width, data.Height);
             Depth = data.Int("depth", 11000);
 
@@ -48,9 +50,8 @@ namespace Celeste.Mod.WindowpaneHelper {
                     BlendState = BlendState.AlphaBlend; break;
             }
 
-            Background ??= new ForcefulBackdropRenderer();
-            Foreground ??= new ForcefulBackdropRenderer();
-            GroupLeaderInfo ??= new Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>>();
+            Background = new ForcefulBackdropRenderer();
+            Foreground = new ForcefulBackdropRenderer();
 
             Node = data.FirstNodeNullable(offset);
         }
@@ -58,12 +59,8 @@ namespace Celeste.Mod.WindowpaneHelper {
         public override void Added(Scene scene) {
             base.Added(scene);
 
-            if (Background.Backdrops.Count == 0) {
-                Background.Backdrops = SceneAs<Level>().Background.Backdrops;
-            }
-            if (Foreground.Backdrops.Count == 0) {
-                Foreground.Backdrops = SceneAs<Level>().Foreground.Backdrops;
-            }
+            Background.Backdrops = SceneAs<Level>().Background.Backdrops.Where((b) => b.Tags.Contains(StylegroundTag)).ToList();
+            Foreground.Backdrops = SceneAs<Level>().Foreground.Backdrops.Where((b) => b.Tags.Contains(StylegroundTag)).ToList();
 
             Add(new BeforeRenderHook(BeforeRender));
 
@@ -129,15 +126,15 @@ namespace Celeste.Mod.WindowpaneHelper {
 
         private void BeforeRender() {
             if (IsLeader) {
-                Background.BeforeRender(Scene, only: StylegroundTag);
-                Foreground.BeforeRender(Scene, only: StylegroundTag);
+                Background.BeforeRender(Scene);
+                Foreground.BeforeRender(Scene);
 
                 if (Target == null) { JoinGroup(); }
                 Engine.Graphics.GraphicsDevice.SetRenderTarget(Target);
                 Engine.Graphics.GraphicsDevice.Clear(Color.Transparent);
 
-                Background.Render(Scene, only: StylegroundTag);
-                Foreground.Render(Scene, only: StylegroundTag);
+                Background.Render(Scene);
+                Foreground.Render(Scene);
             }
         }
 

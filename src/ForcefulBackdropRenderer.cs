@@ -10,11 +10,9 @@ namespace Celeste.Mod.WindowpaneHelper {
         private static FieldInfo usingSpritebatchInfo = typeof(BackdropRenderer).GetField("usingSpritebatch", BindingFlags.NonPublic | BindingFlags.Instance);
         internal static bool Rendering = false;
 
-        public void BeforeRender(Scene scene, string[] only) {
+        public override void BeforeRender(Scene scene) {
             Rendering = true;
             foreach (Backdrop backdrop in Backdrops) {
-                if (only.Length > 0 && !backdrop.Tags.IsSupersetOf(only)) { continue; }
-
                 bool orig_Visible = backdrop.Visible, orig_ForceVisible = backdrop.ForceVisible;
                 backdrop.Visible = true;
                 backdrop.ForceVisible = true;
@@ -27,15 +25,10 @@ namespace Celeste.Mod.WindowpaneHelper {
             Rendering = false;
         }
 
-        public void BeforeRender(Scene scene, string only) { this.BeforeRender(scene, new string[] { only }); }
-        public override void BeforeRender(Scene scene) { this.BeforeRender(scene, new string[] { }); }
-
-        public void Render(Scene scene, string[] only, bool drawFade) {
+        public void Render(Scene scene, bool drawFade) {
             Rendering = true;
             BlendState blendState = BlendState.AlphaBlend;
             foreach (Backdrop backdrop in Backdrops) {
-                if (only.Length > 0 && !backdrop.Tags.IsSupersetOf(only)) { continue; }
-
                 bool orig_Visible = backdrop.Visible, orig_ForceVisible = backdrop.ForceVisible;
                 backdrop.Visible = true;
                 backdrop.ForceVisible = true;
@@ -64,11 +57,6 @@ namespace Celeste.Mod.WindowpaneHelper {
             Rendering = false;
         }
 
-        public void Render(Scene scene, string only, bool drawFade) { this.Render(scene, new string[] { only }, drawFade); }
-        public void Render(Scene scene, string[] only) { this.Render(scene, only, true); }
-        public void Render(Scene scene, string only) { this.Render(scene, new string[] { only }, true); }
-        public void Render(Scene scene, bool drawFade) { this.Render(scene, new string[] { }, drawFade); }
-
-        public override void Render(Scene scene) { this.Render(scene, new string[] { }, true); }
+        public override void Render(Scene scene) { this.Render(scene, true); }
     }
 }
