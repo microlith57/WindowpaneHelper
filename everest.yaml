@@ -1,7 +1,7 @@
 ﻿# Copyright 2022 microlith57; MIT License
 # Source available at https://github.com/microlith57/WindowpaneHelper
 - Name: WindowpaneHelper
-  Version: 1.1.1
+  Version: 1.1.2
   DLL: WindowpaneHelper.dll
   Dependencies:
     - Name: Everest
