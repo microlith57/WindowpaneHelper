@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using Mono.Cecil.Cil;
@@ -17,11 +17,11 @@ namespace Celeste.Mod.WindowpaneHelper {
         public override void Load() {
             IL.Celeste.BackdropRenderer.Render += modBackdropRendererRender;
 
-            On.Celeste.Backdrop.IsVisible += (backdropIsVisibleHook = (On.Celeste.Backdrop.orig_IsVisible orig, Backdrop self, Level level) =>
-                self.Tags.Contains("windowpanehelperonly") ||
-                self.Tags.Intersect(Windowpane.GroupLeaderInfo.Keys).Any() ||
-                orig(self, level)
-            );
+            On.Celeste.Backdrop.IsVisible += (backdropIsVisibleHook = (On.Celeste.Backdrop.orig_IsVisible orig, Backdrop self, Level level) => {
+                if (self.Tags.Contains("windowpanehelperonly")) { return true; }
+                if (Windowpane.GroupLeaderInfo?.Keys != null && self.Tags.Intersect(Windowpane.GroupLeaderInfo.Keys).Any()) { return true; }
+                return orig(self, level);
+            });
 
             On.Celeste.MapData.ParseBackdrop += (backdropParseHook = (On.Celeste.MapData.orig_ParseBackdrop orig, MapData self, BinaryPacker.Element child, BinaryPacker.Element above) => {
                 Backdrop backdrop = orig(self, child, above);
