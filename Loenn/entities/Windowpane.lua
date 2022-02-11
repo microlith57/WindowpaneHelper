@@ -21,7 +21,11 @@ windowpane.placements = {
 }
 -- windowpane.fieldInformation = {
 --   blendState = {
---     options = {"additive", "alphablend", "nonpremultiplied", "opaque"},
+--     options = {additive = "additive", alphablend = "alphablend", alphablend = "nonpremultiplied", alphablend = "opaque"},
+--     fieldType = "string"
+--   },
+--   renderPosition = {
+--     options = {inLevel = "inLevel", above = "above", below = "below"},
 --     fieldType = "string"
 --   }
 -- }
