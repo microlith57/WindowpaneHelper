@@ -14,14 +14,20 @@ windowpane.placements = {
     wipeColor = "000000ff",
     overlayColor = "ffffffff",
     blendState = "alphablend",
+    renderPosition = "inLevel",
+    punchThrough = false,
     stylegroundTag = ""
   }
 }
--- windowpane.fieldInformation = {
---   blendState = {
---     options = {"additive", "alphablend", "nonpremultiplied", "opaque"},
---     fieldType = "string"
---   }
--- }
+windowpane.fieldInformation = {
+  blendState = {
+    options = {"additive", "alphablend", "nonpremultiplied", "opaque"},
+    fieldType = "string"
+  },
+  renderPosition = {
+    options = {"inLevel", "above", "below"},
+    fieldType = "string"
+  }
+}
 
 return windowpane

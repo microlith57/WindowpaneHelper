@@ -8,6 +8,7 @@ using ..Ahorn, Maple
   depth::Integer=11000,
   wipeColor::String="000000ff", overlayColor::String="ffffffff",
   blendState::String="alphablend",
+  renderPosition::String="inLevel", punchThrough::Bool=false,
   stylegroundTag::String=""
 )
 
@@ -25,9 +26,10 @@ Ahorn.nodeLimits(entity::Windowpane) = 0, 1
 Ahorn.minimumSize(entity::Windowpane) = 1, 1
 Ahorn.resizable(entity::Windowpane) = true, true
 
-# Ahorn.editingOptions(entity::Windowpane) = Dict{String, Any}(
-#     "blendState" => ["additive", "alphablend", "nonpremultiplied", "opaque"]
-# )
+Ahorn.editingOptions(entity::Windowpane) = Dict{String, Any}(
+    "blendState" => ["additive", "alphablend", "nonpremultiplied", "opaque"],
+    "renderPosition" => ["inLevel", "above", "below"]
+)
 
 function Ahorn.selection(entity::Windowpane)
   x, y = Ahorn.position(entity)

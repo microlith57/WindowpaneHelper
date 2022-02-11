@@ -5,4 +5,6 @@ placements.entities.WindowpaneHelper/Windowpane.names.overlayColor=Tint
 placements.entities.WindowpaneHelper/Windowpane.tooltips.overlayColor=The colour to tint this window (default "ffffffff"). Can be "rrggbb" or "rrggbbaa" format.
 placements.entities.WindowpaneHelper/Windowpane.names.blendState=Blend Mode
 placements.entities.WindowpaneHelper/Windowpane.tooltips.blendState=How to blend this window into what's behind (default "alphablend").\nCan also use "additive", "nonpremultiplied", or "opaque".
+placements.entities.WindowpaneHelper/Windowpane.tooltips.renderPosition=Whether to render the window within the level ("inLevel"), or entirely behind/in front ("below"/"above").\nOnly "inLevel" windows are affected by lighting.
+placements.entities.WindowpaneHelper/Windowpane.tooltips.punchThrough=Whether to "punch through" parts of the level with higher depth than the window.\nUseful with render position set to "below".
 placements.entities.WindowpaneHelper/Windowpane.tooltips.stylegroundTag=The group this window should be part of. Only stylegrounds with this tag will be drawn in the window.

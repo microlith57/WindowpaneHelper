@@ -1,9 +1,13 @@
-entities.WindowpaneHelper/Windowpane.placements.name.windowpane=Windowpane [Windowpane Helper]
+mods.WindowpaneHelper.name=Windowpane Helper
+entities.WindowpaneHelper/Windowpane.placements.name.windowpane=Windowpane
 entities.WindowpaneHelper/Windowpane.attributes.description.depth=The depth of the entity (default 11000). Higher depth makes the window display behind other objects.
 entities.WindowpaneHelper/Windowpane.attributes.name.wipeColor=Background Colour
 entities.WindowpaneHelper/Windowpane.attributes.description.wipeColor=The colour behind all the stylegrounds (default "000000ff"). Can be "rrggbb" or "rrggbbaa" format.
 entities.WindowpaneHelper/Windowpane.attributes.name.overlayColor=Tint
 entities.WindowpaneHelper/Windowpane.attributes.description.overlayColor=The colour to tint this window (default "ffffffff"). Can be "rrggbb" or "rrggbbaa" format.
 entities.WindowpaneHelper/Windowpane.attributes.name.blendState=Blend Mode
+entities.WindowpaneHelper/Windowpane.attributes.description.blendState=How to blend this window into what's behind (default "alphablend").\nCan also use "additive", "nonpremultiplied", or "opaque".
+entities.WindowpaneHelper/Windowpane.attributes.description.renderPosition=Whether to render the window within the level ("inLevel"), or entirely behind/in front ("below"/"above").\nOnly "inLevel" windows are affected by lighting.
+entities.WindowpaneHelper/Windowpane.attributes.description.punchThrough=Whether to "punch through" parts of the level with higher depth than the window.\nUseful with render position set to "below".
 entities.WindowpaneHelper/Windowpane.attributes.description.blendState=How to blend this window into what's behind (default "alphablend").\nCan also use "additive", "nonpremultiplied", or "opaque".
 entities.WindowpaneHelper/Windowpane.attributes.description.stylegroundTag=The group this window should be part of. Only stylegrounds with this tag will be drawn in the window.

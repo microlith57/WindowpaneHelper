@@ -11,6 +11,7 @@ namespace Celeste.Mod.WindowpaneHelper {
     [CustomEntity("WindowpaneHelper/Windowpane")]
     public class Windowpane : Entity {
         public static Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>> GroupLeaderInfo;
+
         public ForcefulBackdropRenderer Background;
         public ForcefulBackdropRenderer Foreground;
 
@@ -21,6 +22,10 @@ namespace Celeste.Mod.WindowpaneHelper {
         public Color WipeColor;
         public Color OverlayColor;
         public BlendState BlendState;
+
+        public bool PunchThrough;
+        public bool RenderingBelow;
+        public bool RenderingAbove;
 
         public readonly string StylegroundTag;
 
@@ -36,8 +41,7 @@ namespace Celeste.Mod.WindowpaneHelper {
             OverlayColor = ParseColor(data.Attr("overlayColor", "ffffffff"), Color.White);
             StylegroundTag = data.Attr("stylegroundTag", "");
 
-            string blendState = data.Attr("blendState", "alphablend").ToLower();
-            switch (blendState) {
+            switch (data.Attr("blendState", "alphablend").ToLower()) {
                 case "additive":
                     BlendState = BlendState.Additive; break;
                 case "alphablend":
@@ -49,6 +53,25 @@ namespace Celeste.Mod.WindowpaneHelper {
                 default:
                     BlendState = BlendState.AlphaBlend; break;
             }
+
+            switch (data.Attr("renderPosition", "inLevel").ToLower()) {
+                case "below":
+                case "behind":
+                    RenderingAbove = false;
+                    RenderingBelow = true;
+                    break;
+                case "above":
+                    RenderingAbove = true;
+                    RenderingBelow = false;
+                    break;
+                case "inLevel":
+                default:
+                    RenderingAbove = false;
+                    RenderingBelow = false;
+                    break;
+            }
+
+            PunchThrough = data.Bool("punchThrough", false);
 
             Background = new ForcefulBackdropRenderer();
             Foreground = new ForcefulBackdropRenderer();
@@ -75,7 +98,7 @@ namespace Celeste.Mod.WindowpaneHelper {
             if (IsLeader) {
                 var next = (scene as Level).Tracker.GetEntities<Windowpane>()
                                                    .Select(e => (e as Windowpane))
-                                                   .Where(e => (e != null && e != this));
+                                                   .Where(e => (e != null && e != this && e.StylegroundTag == this.StylegroundTag));
 
                 if (next.Any()) {
                     next.First().JoinGroup(forceLeader: true);
@@ -97,12 +120,40 @@ namespace Celeste.Mod.WindowpaneHelper {
             base.SceneEnd(scene);
         }
 
+        public override void HandleGraphicsReset() {
+            if (IsLeader) {
+                GroupLeaderInfo[StylegroundTag] = new Tuple<VirtualRenderTarget, Windowpane>(
+                            VirtualContent.CreateRenderTarget("microlith57-windowpanehelper-" + StylegroundTag, 320, 180),
+                            this);
+            }
+        }
+
         public override void Render() {
             base.Render();
 
             if (Target == null) { return; }
 
-            Vector2 camera_pos = SceneAs<Level>().Camera.Position.Floor();
+            if (PunchThrough) {
+                Draw.SpriteBatch.End();
+                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, (Scene as Level).GameplayRenderer.Camera.Matrix);
+
+                Draw.Rect(Position, Width, Height, Color.Transparent);
+            }
+
+            if (!RenderingBelow && !RenderingAbove) {
+                DrawInterior(Scene as Level);
+            }
+
+            if (PunchThrough && (RenderingBelow || RenderingAbove) && BlendState == BlendState.AlphaBlend) {
+                Draw.SpriteBatch.End();
+                Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, (Scene as Level).GameplayRenderer.Camera.Matrix);
+            }
+        }
+
+        internal void DrawInterior(Level level) {
+            JoinGroup();
+
+            Vector2 camera_pos = level.Camera.Position.Floor();
             Vector2 source_pos = (Node.HasValue ? Node.Value : Position) - camera_pos;
             Rectangle sourceRectangle = new Rectangle(
                 (int)(source_pos.X), (int)(source_pos.Y),
@@ -138,8 +189,24 @@ namespace Celeste.Mod.WindowpaneHelper {
             }
         }
 
+        public static void RenderBehindLevel(Level level) {
+            Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, level.GameplayRenderer.Camera.Matrix);
+            foreach (Windowpane pane in level.Tracker.GetEntities<Windowpane>()) {
+                if (pane.RenderingBelow) { pane.DrawInterior(level); }
+            }
+            Draw.SpriteBatch.End();
+        }
+
+        public static void RenderAboveLevel(Level level) {
+            Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, level.GameplayRenderer.Camera.Matrix);
+            foreach (Windowpane pane in level.Tracker.GetEntities<Windowpane>()) {
+                if (pane.RenderingAbove) { pane.DrawInterior(level); }
+            }
+            Draw.SpriteBatch.End();
+        }
+
         internal void JoinGroup(bool forceLeader = false) {
-            if (forceLeader || !GroupLeaderInfo.ContainsKey(StylegroundTag)) {
+            if (forceLeader || !GroupLeaderInfo.ContainsKey(StylegroundTag) || Leader == null || Target == null || Target.IsDisposed) {
                 GroupLeaderInfo[StylegroundTag] = new Tuple<VirtualRenderTarget, Windowpane>(
                             VirtualContent.CreateRenderTarget("microlith57-windowpanehelper-" + StylegroundTag, 320, 180),
                             this);
@@ -147,9 +214,7 @@ namespace Celeste.Mod.WindowpaneHelper {
         }
 
         private void OnTransitionIn() {
-            if (Leader.Scene != Scene) {
-                JoinGroup(forceLeader: true);
-            }
+            JoinGroup();
         }
 
         private Color ParseColor(string hex, Color defaultValue) {
