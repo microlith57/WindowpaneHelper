@@ -14,6 +14,8 @@ windowpane.placements = {
     wipeColor = "000000ff",
     overlayColor = "ffffffff",
     blendState = "alphablend",
+    renderPosition = "inLevel",
+    punchThrough = false,
     stylegroundTag = ""
   }
 }

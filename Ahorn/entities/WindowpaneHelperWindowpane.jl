@@ -8,6 +8,7 @@ using ..Ahorn, Maple
   depth::Integer=11000,
   wipeColor::String="000000ff", overlayColor::String="ffffffff",
   blendState::String="alphablend",
+  renderPosition::String="inLevel", punchThrough::Bool=false,
   stylegroundTag::String=""
 )
 
