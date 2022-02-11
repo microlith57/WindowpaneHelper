@@ -4,12 +4,13 @@ using Monocle;
 
 namespace Celeste.Mod.WindowpaneHelper {
     /// <summary>
-    /// A BackdropRenderer that always renders its backdrops, regardless of whether or not they are Visible.
+    /// a BackdropRenderer that always renders its backdrops, regardless of whether or not they are Visible.
     /// </summary>
     public class ForcefulBackdropRenderer : BackdropRenderer {
         private static FieldInfo usingSpritebatchInfo = typeof(BackdropRenderer).GetField("usingSpritebatch", BindingFlags.NonPublic | BindingFlags.Instance);
         internal static bool Rendering = false;
 
+        // same as vanilla, but set Visible and ForceVisible to true for the duration of each BeforeRender
         public override void BeforeRender(Scene scene) {
             Rendering = true;
             foreach (Backdrop backdrop in Backdrops) {
@@ -25,6 +26,7 @@ namespace Celeste.Mod.WindowpaneHelper {
             Rendering = false;
         }
 
+        // same as vanilla, but set Visible and ForceVisible to true for the duration of each Render
         public void Render(Scene scene, bool drawFade) {
             Rendering = true;
             BlendState blendState = BlendState.AlphaBlend;

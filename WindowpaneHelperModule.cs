@@ -19,12 +19,14 @@ namespace Celeste.Mod.WindowpaneHelper {
             IL.Celeste.BackdropRenderer.Render += modBackdropRendererRender;
             IL.Celeste.Level.Render += modLevelRender;
 
+            // make backdrops think they're always visible if they are tagged "windowpanehelperonly" or are visible in a windowpanw
             On.Celeste.Backdrop.IsVisible += (backdropIsVisibleHook = (On.Celeste.Backdrop.orig_IsVisible orig, Backdrop self, Level level) => {
                 if (self.Tags.Contains("windowpanehelperonly")) { return true; }
                 if (Windowpane.GroupLeaderInfo?.Keys != null && self.Tags.Intersect(Windowpane.GroupLeaderInfo.Keys).Any()) { return true; }
                 return orig(self, level);
             });
 
+            // allow comma-separated styleground tags
             On.Celeste.MapData.ParseBackdrop += (backdropParseHook = (On.Celeste.MapData.orig_ParseBackdrop orig, MapData self, BinaryPacker.Element child, BinaryPacker.Element above) => {
                 Backdrop backdrop = orig(self, child, above);
                 if (backdrop.Tags.Count == 1) {
@@ -41,6 +43,7 @@ namespace Celeste.Mod.WindowpaneHelper {
             On.Celeste.MapData.ParseBackdrop -= backdropParseHook;
         }
 
+        // prevent "windowpanehelperonly"-tagged backdrops from actually being rendered
         private void modBackdropRendererRender(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
@@ -60,6 +63,7 @@ namespace Celeste.Mod.WindowpaneHelper {
             cursor.Emit(OpCodes.Brtrue_S, continue_label);
         }
 
+        // render windowpanes behind & above the level at the appropriate times
         private void modLevelRender(ILContext il) {
             ILCursor cursor = new ILCursor(il);
 
@@ -72,7 +76,7 @@ namespace Celeste.Mod.WindowpaneHelper {
                                     instr => instr.MatchLdarg(0),
                                     instr => instr.MatchCallOrCallvirt(typeof(Renderer), "Render"))) { return; }
 
-            // if the backdrop has the tag, jump over the if block
+            // render the windowpanes
             cursor.Emit(OpCodes.Ldarg, 0);
             cursor.EmitDelegate<Func<Level, bool>>((level) => {
                 Windowpane.RenderBehindLevel(level);
@@ -90,7 +94,7 @@ namespace Celeste.Mod.WindowpaneHelper {
                                     instr => instr.MatchLdarg(0),
                                     instr => instr.MatchCallOrCallvirt(typeof(Renderer), "Render"))) { return; }
 
-            // if the backdrop has the tag, jump over the if block
+            // render the windowpanes
             cursor.Emit(OpCodes.Ldarg, 0);
             cursor.EmitDelegate<Func<Level, bool>>((level) => {
                 Windowpane.RenderAboveLevel(level);
