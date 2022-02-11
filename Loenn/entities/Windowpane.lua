@@ -19,15 +19,15 @@ windowpane.placements = {
     stylegroundTag = ""
   }
 }
--- windowpane.fieldInformation = {
---   blendState = {
---     options = {additive = "additive", alphablend = "alphablend", alphablend = "nonpremultiplied", alphablend = "opaque"},
---     fieldType = "string"
---   },
---   renderPosition = {
---     options = {inLevel = "inLevel", above = "above", below = "below"},
---     fieldType = "string"
---   }
--- }
+windowpane.fieldInformation = {
+  blendState = {
+    options = {"additive", "alphablend", "nonpremultiplied", "opaque"},
+    fieldType = "string"
+  },
+  renderPosition = {
+    options = {"inLevel", "above", "below"},
+    fieldType = "string"
+  }
+}
 
 return windowpane
