@@ -16,7 +16,8 @@ windowpane.placements = {
     blendState = "alphablend",
     renderPosition = "inLevel",
     punchThrough = false,
-    stylegroundTag = ""
+    stylegroundTag = "",
+    flags = ""
   }
 }
 windowpane.fieldInformation = {

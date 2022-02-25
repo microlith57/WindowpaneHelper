@@ -10,16 +10,31 @@ namespace Celeste.Mod.WindowpaneHelper {
     [Tracked]
     [CustomEntity("WindowpaneHelper/Windowpane")]
     public class Windowpane : Entity {
+        public struct Group {
+            public Windowpane Leader;
+            public VirtualRenderTarget Target;
+            public bool AnyVisible = false;
+
+            public Group(Windowpane leader, VirtualRenderTarget target) {
+                Leader = leader; Target = target;
+            }
+        }
+
         // used to store the render target and leading windowpane for each styleground tag
-        public static Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>> GroupLeaderInfo;
+        public static Dictionary<string, Group> Groups;
 
         public ForcefulBackdropRenderer Background;
         public ForcefulBackdropRenderer Foreground;
 
         // quality of life getters
-        public VirtualRenderTarget Target => (GroupLeaderInfo?[StylegroundTag]?.Item1);
-        public Windowpane Leader => (GroupLeaderInfo?[StylegroundTag]?.Item2);
-        public bool IsLeader => (GroupLeaderInfo.ContainsKey(StylegroundTag) && Leader != null && Leader == this);
+        public bool InGroup => (Groups.ContainsKey(StylegroundTag));
+        public Windowpane Leader => (InGroup ? Groups[StylegroundTag].Leader : null);
+        public VirtualRenderTarget Target => (InGroup ? Groups[StylegroundTag].Target : null);
+        public bool AnyVisible => (InGroup && Groups[StylegroundTag].AnyVisible);
+        public bool IsLeader => (Leader != null && Leader == this);
+
+        private bool _renderingThisFrame = true;
+        public bool RenderingThisFrame => (AnyVisible && _renderingThisFrame);
 
         public Color WipeColor;
         public Color OverlayColor;
@@ -29,13 +44,17 @@ namespace Celeste.Mod.WindowpaneHelper {
         public bool RenderingBelow;
         public bool RenderingAbove;
 
+        public readonly List<Tuple<string, bool>> Flags = new List<Tuple<string, bool>>();
+
         // used to group windowpanes into groups
         public readonly string StylegroundTag;
 
         public Vector2? Node;
 
         public Windowpane(EntityData data, Vector2 offset) : base(data.Position + offset) {
-            GroupLeaderInfo ??= new Dictionary<string, Tuple<VirtualRenderTarget, Windowpane>>();
+            Groups ??= new Dictionary<string, Group>();
+
+            Tag |= (byte)Tags.TransitionUpdate | (byte)Tags.FrozenUpdate;
 
             Collider = new Hitbox(data.Width, data.Height);
             Depth = data.Int("depth", 11000);
@@ -74,6 +93,17 @@ namespace Celeste.Mod.WindowpaneHelper {
                     break;
             }
 
+            foreach (var raw_flag in data.Attr("flags", "").Split(',')) {
+                var flag = raw_flag.Trim(new char[] { ' ' });
+                if (flag.Length == 0) { continue; }
+
+                if (flag.StartsWith("!")) {
+                    Flags.Add(new Tuple<string, bool>(flag.TrimStart(new char[] { '!' }), true));
+                } else {
+                    Flags.Add(new Tuple<string, bool>(flag, false));
+                }
+            }
+
             PunchThrough = data.Bool("punchThrough", false);
 
             Background = new ForcefulBackdropRenderer();
@@ -104,7 +134,7 @@ namespace Celeste.Mod.WindowpaneHelper {
                     next.First().JoinGroup(forceLeader: true);
                 } else {
                     Target.Dispose();
-                    GroupLeaderInfo.Remove(StylegroundTag);
+                    Groups.Remove(StylegroundTag);
                 }
             }
             base.Removed(scene);
@@ -114,7 +144,7 @@ namespace Celeste.Mod.WindowpaneHelper {
             // cleanup
             if (IsLeader) {
                 Target.Dispose();
-                GroupLeaderInfo.Remove(StylegroundTag);
+                Groups.Remove(StylegroundTag);
             }
             Background.Backdrops = new List<Backdrop>();
             Foreground.Backdrops = new List<Backdrop>();
@@ -122,14 +152,37 @@ namespace Celeste.Mod.WindowpaneHelper {
         }
 
         public override void HandleGraphicsReset() {
-            if (IsLeader) {
-                GroupLeaderInfo[StylegroundTag] = new Tuple<VirtualRenderTarget, Windowpane>(
-                            VirtualContent.CreateRenderTarget("microlith57-windowpanehelper-" + StylegroundTag, 320, 180),
-                            this);
+            if (!IsLeader) { return; }
+
+            if (!InGroup) { JoinGroup(); }
+            var group = Groups[StylegroundTag];
+            if (group.Target == null || group.Target.IsDisposed) {
+                group.Target = CreateRenderTarget();
             }
+            Groups[StylegroundTag] = group;
+        }
+
+        public override void Update() {
+            base.Update();
+
+            _renderingThisFrame = true;
+            foreach (var flag in Flags) {
+                if (flag.Item2) {
+                    _renderingThisFrame &= !SceneAs<Level>().Session.GetFlag(flag.Item1);
+                } else {
+                    _renderingThisFrame &= SceneAs<Level>().Session.GetFlag(flag.Item1);
+                }
+            }
+
+            if (!InGroup) { JoinGroup(); }
+            var group = Groups[StylegroundTag];
+            group.AnyVisible |= _renderingThisFrame;
+            Groups[StylegroundTag] = group;
         }
 
         public override void Render() {
+            if (!RenderingThisFrame) { return; }
+
             base.Render();
 
             // no point creating the target now, it won't have anything in it
@@ -181,7 +234,7 @@ namespace Celeste.Mod.WindowpaneHelper {
         }
 
         private void BeforeRender() {
-            if (IsLeader) {
+            if (IsLeader && AnyVisible) {
                 Background.BeforeRender(Scene);
                 Foreground.BeforeRender(Scene);
 
@@ -199,7 +252,7 @@ namespace Celeste.Mod.WindowpaneHelper {
             // render all the windowpanes that should be rendered now
             Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, level.GameplayRenderer.Camera.Matrix);
             foreach (Windowpane pane in level.Tracker.GetEntities<Windowpane>()) {
-                if (pane.RenderingBelow) { pane.DrawInterior(level); }
+                if (pane.RenderingBelow && pane.RenderingThisFrame) { pane.DrawInterior(level); }
             }
             Draw.SpriteBatch.End();
         }
@@ -208,16 +261,19 @@ namespace Celeste.Mod.WindowpaneHelper {
             // render all the windowpanes that should be rendered now
             Draw.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointWrap, DepthStencilState.None, RasterizerState.CullNone, null, level.GameplayRenderer.Camera.Matrix);
             foreach (Windowpane pane in level.Tracker.GetEntities<Windowpane>()) {
-                if (pane.RenderingAbove) { pane.DrawInterior(level); }
+                if (pane.RenderingAbove && pane.RenderingThisFrame) { pane.DrawInterior(level); }
             }
             Draw.SpriteBatch.End();
         }
 
         internal void JoinGroup(bool forceLeader = false) {
-            if (forceLeader || !GroupLeaderInfo.ContainsKey(StylegroundTag) || Leader == null || Target == null || Target.IsDisposed) {
-                GroupLeaderInfo[StylegroundTag] = new Tuple<VirtualRenderTarget, Windowpane>(
-                            VirtualContent.CreateRenderTarget("microlith57-windowpanehelper-" + StylegroundTag, 320, 180),
-                            this);
+            if (forceLeader || !InGroup || Leader == null || Target == null || Target.IsDisposed) {
+                if (!InGroup) {
+                    Groups[StylegroundTag] = new Group(this, CreateRenderTarget());
+                }
+                var group = Groups[StylegroundTag];
+                group.Leader = this;
+                Groups[StylegroundTag] = group;
             }
         }
 
@@ -239,6 +295,10 @@ namespace Celeste.Mod.WindowpaneHelper {
                 return new Color(r, g, b) * a;
             }
             return defaultValue;
+        }
+
+        private VirtualRenderTarget CreateRenderTarget() {
+            return VirtualContent.CreateRenderTarget("microlith57-windowpanehelper-" + StylegroundTag, 320, 180);
         }
     }
 }
