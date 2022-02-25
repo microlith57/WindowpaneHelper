@@ -5,7 +5,7 @@
     <TargetFrameworks>net452</TargetFrameworks>
     <AssemblyName>WindowpaneHelper</AssemblyName>
     <RootNamespace>Celeste.Mod.WindowpaneHelper</RootNamespace>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <CelesteGamePath Condition="'$(CELESTEGAMEPATH)' == ''">..\..</CelesteGamePath>
   </PropertyGroup>
 

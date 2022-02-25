@@ -22,7 +22,7 @@ namespace Celeste.Mod.WindowpaneHelper {
             // make backdrops think they're always visible if they are tagged "windowpanehelperonly" or are visible in a windowpanw
             On.Celeste.Backdrop.IsVisible += (backdropIsVisibleHook = (On.Celeste.Backdrop.orig_IsVisible orig, Backdrop self, Level level) => {
                 if (self.Tags.Contains("windowpanehelperonly")) { return true; }
-                if (Windowpane.GroupLeaderInfo?.Keys != null && self.Tags.Intersect(Windowpane.GroupLeaderInfo.Keys).Any()) { return true; }
+                if (Windowpane.Groups?.Keys != null && self.Tags.Intersect(Windowpane.Groups.Keys).Any()) { return true; }
                 return orig(self, level);
             });
 
@@ -98,6 +98,11 @@ namespace Celeste.Mod.WindowpaneHelper {
             cursor.Emit(OpCodes.Ldarg, 0);
             cursor.EmitDelegate<Func<Level, bool>>((level) => {
                 Windowpane.RenderAboveLevel(level);
+                // reset group vsibility
+                foreach (var group in Windowpane.Groups.Values) {
+                    var group_again = group;
+                    group_again.AnyVisible = false;
+                }
                 return true;
             });
             cursor.Emit(OpCodes.Pop);

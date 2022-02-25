@@ -9,7 +9,8 @@ using ..Ahorn, Maple
   wipeColor::String="000000ff", overlayColor::String="ffffffff",
   blendState::String="alphablend",
   renderPosition::String="inLevel", punchThrough::Bool=false,
-  stylegroundTag::String=""
+  stylegroundTag::String="",
+  flags::String=""
 )
 
 const placements = Ahorn.PlacementDict(
