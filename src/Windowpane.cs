@@ -10,10 +10,17 @@ namespace Celeste.Mod.WindowpaneHelper {
     [Tracked]
     [CustomEntity("WindowpaneHelper/Windowpane")]
     public class Windowpane : Entity {
+        // a group of windowpanes, all sharing a single styleground tag.
+        // the relevant stylegrounds are rendered to a render target for the group, and then parts of that
+        //   render target are rendered to the individual window entities.
         public struct Group {
+            // the windowpane in charge of the render target
             public Windowpane Leader;
+            // the render target itself
             public VirtualRenderTarget Target;
+            // whether any windowpanes are visible this frame
             public bool AnyVisible = false;
+            internal bool _shouldResetAnyVisible = true;
 
             public Group(Windowpane leader, VirtualRenderTarget target) {
                 Leader = leader; Target = target;
@@ -27,12 +34,13 @@ namespace Celeste.Mod.WindowpaneHelper {
         public ForcefulBackdropRenderer Foreground;
 
         // quality of life getters
-        public bool InGroup => (Groups.ContainsKey(StylegroundTag));
-        public Windowpane Leader => (InGroup ? Groups[StylegroundTag].Leader : null);
-        public VirtualRenderTarget Target => (InGroup ? Groups[StylegroundTag].Target : null);
-        public bool AnyVisible => (InGroup && Groups[StylegroundTag].AnyVisible);
-        public bool IsLeader => (Leader != null && Leader == this);
+        public bool InGroup => Groups.ContainsKey(StylegroundTag);
+        public Windowpane Leader => InGroup ? Groups[StylegroundTag].Leader : null;
+        public VirtualRenderTarget Target => InGroup ? Groups[StylegroundTag].Target : null;
+        public bool AnyVisible => InGroup && Groups[StylegroundTag].AnyVisible;
+        public bool IsLeader => Leader != null && Leader == this;
 
+        // keeping track of whether panes are visible
         private bool _renderingThisFrame = true;
         public bool RenderingThisFrame => (AnyVisible && _renderingThisFrame);
 
@@ -44,6 +52,7 @@ namespace Celeste.Mod.WindowpaneHelper {
         public bool RenderingBelow;
         public bool RenderingAbove;
 
+        // list of (flag names, invert?) tuples
         public readonly List<Tuple<string, bool>> Flags = new List<Tuple<string, bool>>();
 
         // used to group windowpanes into groups
@@ -175,12 +184,25 @@ namespace Celeste.Mod.WindowpaneHelper {
             }
 
             if (!InGroup) { JoinGroup(); }
+
+            // set group visibility
             var group = Groups[StylegroundTag];
+            if (group._shouldResetAnyVisible) {
+                group.AnyVisible = false;
+                group._shouldResetAnyVisible = false;
+            }
             group.AnyVisible |= _renderingThisFrame;
             Groups[StylegroundTag] = group;
         }
 
         public override void Render() {
+            // unset group visibility
+            if (!Groups[StylegroundTag]._shouldResetAnyVisible) {
+                var group = Groups[StylegroundTag];
+                group._shouldResetAnyVisible = true;
+                Groups[StylegroundTag] = group;
+            }
+
             if (!RenderingThisFrame) { return; }
 
             base.Render();
