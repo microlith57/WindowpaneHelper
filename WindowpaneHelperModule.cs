@@ -98,11 +98,6 @@ namespace Celeste.Mod.WindowpaneHelper {
             cursor.Emit(OpCodes.Ldarg, 0);
             cursor.EmitDelegate<Func<Level, bool>>((level) => {
                 Windowpane.RenderAboveLevel(level);
-                // reset group vsibility
-                foreach (var group in Windowpane.Groups.Values) {
-                    var group_again = group;
-                    group_again.AnyVisible = false;
-                }
                 return true;
             });
             cursor.Emit(OpCodes.Pop);
