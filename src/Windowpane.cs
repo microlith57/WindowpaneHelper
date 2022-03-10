@@ -197,7 +197,7 @@ namespace Celeste.Mod.WindowpaneHelper {
 
         public override void Render() {
             // unset group visibility
-            if (!Groups[StylegroundTag]._shouldResetAnyVisible) {
+            if (InGroup && !Groups[StylegroundTag]._shouldResetAnyVisible) {
                 var group = Groups[StylegroundTag];
                 group._shouldResetAnyVisible = true;
                 Groups[StylegroundTag] = group;
